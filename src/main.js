@@ -2,33 +2,70 @@ const chrome = require('selenium-webdriver/chrome');
 //const firefox = require('../firefox');
 const {Builder, By, Key, until} = require('selenium-webdriver');
 var fs = require('fs');
+var express        =        require("express");
+var bodyParser     =        require("body-parser");
 
-const width = 640;
-const height = 480;
+var app            =        express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-let driver = new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(
-        new chrome.Options().headless().
-            windowSize({width, height}).
-            addArguments("--no-sandbox","--mute-audio","--hide-scrollbars")
-    ).build();
 
-//    .setFirefoxOptions(
-//        new firefox.Options().headless().windowSize({width, height}))
-//    .build();
 
-driver.get('http://www.google.com/ncr')
-  .then(_ =>
-          driver.findElement(By.name('q')).sendKeys('webdriver', Key.RETURN))
-  .then(_ => driver.wait(until.titleIs('webdriver - Google Search'), 1000))
-  .then(_ => driver.takeScreenshot())
-  .then(data => {
-    var base64Data = data.replace(/^data:image\/png;base64,/,"");
-    fs.writeFile("out.png", base64Data, 'base64', function(err) {
-      if(err) console.log(err);
-    })
-   })
-  .then(
-    _ => driver.quit(),
-    e => driver.quit().then(() => { throw e; }));
+const width = 1920;
+const height = 1080;
+let options=new chrome.Options().headless().
+    windowSize({width, height}).
+    addArguments("--no-sandbox",
+                 "--mute-audio",
+                 "--disable-dev-shm-usage",
+                 '--disable-gpu',
+                 '--disable-impl-side-painting',
+                 '--disable-gpu-sandbox',
+                 '--disable-accelerated-2d-canvas',
+                 '--disable-accelerated-jpeg-decoding',
+
+                 "--hide-scrollbars")
+
+
+function delay(ms) {
+    return new Promise(function (resolve) { return setTimeout(resolve, ms); });
+};
+
+app.post('/screenshot',function(req,res){
+  var url=req.body.url;
+  console.log("getting from:", req.body, url);
+  let driver = new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options)
+      .build();
+
+  driver.get(url)
+    .then( delay(2000))
+    .then(_ => driver.takeScreenshot())
+    //.then(data => {
+      //var base64Data = data.replace(/^data:image\/png;base64,/,"");
+      //console.log("SCREENSHOT IMAGE:", data.length, data.slice(0,30));
+//      return base64Data
+    //})
+    .then(
+      data => {
+        console.log("SENDING IMAGE:", data.length, data.slice(0,30));
+        res.contentType('png');
+        res.end(Buffer.from(data, 'base64').toString('ascii'),'binary');
+        driver.quit();
+      })
+    .catch(
+      e => driver.quit().
+        then(() => {
+          console.log("ERROR:", e)
+          res.end(JSON.stringify({error: true, name: e.name}))
+        })
+    );
+
+
+});
+
+var port = 3100
+app.listen(port,function(){
+  console.log(`Started on PORT ${port}`);
+})

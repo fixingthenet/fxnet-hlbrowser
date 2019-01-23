@@ -1,5 +1,7 @@
 FROM node:10.15.0-stretch
 
+WORKDIR /code
+
 ENV VERSION=1
 RUN apt-get update -y && \
     apt-get install -y \
