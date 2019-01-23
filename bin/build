@@ -1,0 +1,61 @@
+#!/bin/bash
+set -e
+
+tag=`date +%Y%m%d%H%M`
+app_dir=`pwd`
+prj_file="$app_dir/project.json"
+
+repo=`jq -r ".docker.repo" "$prj_file"`
+project=`jq -r ".docker.name" "$prj_file"`
+path=`jq -r ".path" "$prj_file"`
+
+ACTION=${1:-build}
+
+# TODO: only if aws
+repo_login() {
+  `aws ecr get-login --region eu-west-1 --no-include-email`
+}
+case "$ACTION" in
+  "build" )
+    repo_login
+    docker build -t $repo/$project:latest $app_dir
+    ;;
+  "push" )
+    repo_login
+    docker build -t $repo/$project:latest $app_dir
+    docker push $repo/$project:latest
+    docker tag $repo/$project:latest $repo/$project:$tag
+    docker push $repo/$project:$tag
+    echo "Pushed $project, Tag: $tag"
+    ;;
+  "release" )
+    echo "Implement release!"
+    exit 1
+    ;;
+  "widget release" )
+    package_version=`jq -r ".version" "$app_dir/package.json"` 
+    echo "hopefully you updated package.json"
+    git add package.json
+    repo_login
+    echo "building latest image"
+    docker build -t $repo/$project:latest $app_dir > /dev/null
+    echo "building widgets for checkin"
+    docker run --rm -v $app_dir:/code $repo/$project:latest yarn run widget:build > /dev/null
+    echo "commiting and pushing tag: $package_version"
+    git status
+    git commit package.json dist -m "building for $package_version"
+    git push
+    git tag $package_version
+    git push --tags
+    ;;
+   "local_release" )
+     tag=`date +%Y%m%d%H%M`
+     docker push $repo/$project:latest
+     docker tag $repo/$project:latest $repo/$project:$tag
+     docker push $repo/$project:$tag
+     echo "Pushed $project, Tag: $tag"
+   ;;
+  * )
+    echo "unknown action: '$ACTION'"
+  ;;
+esac

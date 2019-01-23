@@ -1,0 +1,10 @@
+{
+  "project": "fxnet-hlbrowser",
+    
+  "git": "x",
+  "path": "fxnet-hlbrowser",
+  "docker": {
+    "repo": "858049876441.dkr.ecr.eu-west-1.amazonaws.com",
+    "name": "fxnet-hlbrowser"
+  }
+}
