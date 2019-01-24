@@ -28,11 +28,14 @@ let options=new chrome.Options().headless().
 
 
 function delay(ms) {
-    return new Promise(function (resolve) { return setTimeout(resolve, ms); });
+  console.log("DELAYING: ", ms);
+  return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 };
 
 app.post('/screenshot',function(req,res){
   var url=req.body.url;
+  var delay_ms=req.body.delay || 2000;
+
   console.log("getting from:", req.body, url);
   let driver = new Builder()
       .forBrowser('chrome')
@@ -40,7 +43,7 @@ app.post('/screenshot',function(req,res){
       .build();
 
   driver.get(url)
-    .then( delay(2000))
+    .then( delay(delay_ms))
     .then(_ => driver.takeScreenshot())
     //.then(data => {
       //var base64Data = data.replace(/^data:image\/png;base64,/,"");
@@ -49,9 +52,11 @@ app.post('/screenshot',function(req,res){
     //})
     .then(
       data => {
+        //var base64Data = data.replace(/^data:image\/png;base64,/,"")
         console.log("SENDING IMAGE:", data.length, data.slice(0,30));
         res.contentType('png');
-        res.end(Buffer.from(data, 'base64').toString('ascii'),'binary');
+        res.end(Buffer.from(data, 'base64').toString('binary'),'binary');
+        //res.end(data,'binary')
         driver.quit();
       })
     .catch(
