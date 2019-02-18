@@ -1,25 +1,27 @@
-FROM node:10.15.0-stretch
+FROM mhart/alpine-node:11.9.0
 
 WORKDIR /code
 
 ENV VERSION=1
-RUN apt-get update -y && \
-    apt-get install -y \
-            apt-transport-https \
-            gnupg2 \
-            git-core \
-            joe \
-            curl \
-            build-essential \
-            chromedriver
+RUN apk update && apk upgrade && \
+    echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories && \
+    echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories && \
+    apk add --no-cache \
+      chromium@edge \
+      harfbuzz@edge \
+      nss@edge \
+      joe curl git bash
 
-RUN curl -s -l https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
-    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
-    apt-get update -y && \
-    apt-get install -y yarn
-
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 ENV LANG=C.UTF-8
 ENV LANGUAGE=en_US:en
 ENV LC_ALL=C.UTF-8
+
+ADD package.json .
+ADD yarn.lock .
+
+RUN yarn install
+
+ADD . .
 
 CMD yarn run server
