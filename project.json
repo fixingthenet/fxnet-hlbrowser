@@ -4,7 +4,7 @@
   "git": "github.com/fixingthenet/fxnet-hlbrowser",
   "path": "fxnet-hlbrowser",
   "docker": {
-    "repo": "fixingthenet",
+    "repo": "fxnet",
     "name": "fxnet-hlbrowser"
   }
 }

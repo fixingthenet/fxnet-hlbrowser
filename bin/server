@@ -7,5 +7,5 @@ path=`jq -r ".path" "$prj_file"`
 repo=`jq -r ".docker.repo" "$prj_file"`
 project=`jq -r ".docker.name" "$prj_file"`
 
-docker run --rm -ti -p 3100:3100 -v /dev/shm:/dev/shm -v /vagrant/apps/$path:/code $repo/$project:latest
+docker run --rm -ti -p 3100:3100 -v /dev/shm:/dev/shm -v /vagrant/apps/$path:/code $repo/$project:latest "$@"
 

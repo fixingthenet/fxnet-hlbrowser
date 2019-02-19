@@ -14,6 +14,10 @@ const viewport = {
 };
 let browser = null;
 
+app.get('/health', (req,res) => {
+   return res.json({"success": true})
+})
+
 app.post('/screenshot', async (req,res) => {
   const { url, delay } = req.body;
   console.log("getting from:", req.body, url, delay);
