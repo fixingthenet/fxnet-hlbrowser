@@ -13,7 +13,7 @@ const viewport = {
   height: 1080
 };
 
-let browsers = null;
+let browser = null;
 
 // TBD: this should block for anybody and return to anybody the same thing
 // currently parallel requests could overwrite browsers
