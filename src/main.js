@@ -22,6 +22,7 @@ const launchBrowser = async function() {
   console.debug("Launching new browser");
   var b = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--shm-size=1gb'],
+    headless: false,
     executablePath: '/usr/bin/chromium-browser'
   });
   console.debug("Browser launched")
@@ -59,7 +60,7 @@ app.post('/screenshot', async (req,res) => {
   } finally {
     if (page) {
       console.debug("Closing Page");
-      page.close()
+      //page.close()
     } else { //no page? that's strang! browser might be broken
       console.debug("Closing Browser");
       if (browser) browser.close()
